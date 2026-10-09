@@ -79,5 +79,5 @@ Without the worker, jobs stay `QUEUED` forever while the dashboard polls.
 ## Architecture
 
 - **Postgres (Supabase)** — source of truth for users, companies, analyses
-- **Redis** — BullMQ queue only
+- **Redis** — optional BullMQ queue (default runner uses the DB directly; toggle in admin)
 - **Worker** — generates prompts → searches providers → extracts → metrics → recommendations
