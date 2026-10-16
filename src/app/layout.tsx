@@ -1,10 +1,38 @@
 import type { Metadata } from "next";
-import { DM_Sans, Source_Serif_4 } from "next/font/google";
+import {
+  Caveat,
+  Comic_Neue,
+  Geist,
+  Kalam,
+  Patrick_Hand,
+  Source_Serif_4,
+} from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+
+const comicNeue = Comic_Neue({
+  variable: "--font-comic-neue",
   subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+const patrickHand = Patrick_Hand({
+  variable: "--font-patrick-hand",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
+
+const kalam = Kalam({
+  variable: "--font-kalam",
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
 });
 
 const sourceSerif = Source_Serif_4({
@@ -13,8 +41,9 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Strand — AI Visibility",
-  description: "Analyze how AI assistants recommend your brand",
+  title: "Strand — AI Visibility Platform",
+  description:
+    "Strand tracks how AI discovers, understands, and recommends brands across every model and every conversation.",
 };
 
 export default function RootLayout({
@@ -23,11 +52,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${dmSans.variable} ${sourceSerif.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-screen flex-col bg-black text-white">
+    <html lang="en">
+      <body
+        className={`${geist.variable} ${comicNeue.variable} ${patrickHand.variable} ${caveat.variable} ${kalam.variable} ${sourceSerif.variable} paper-grain antialiased`}
+      >
         {children}
       </body>
     </html>

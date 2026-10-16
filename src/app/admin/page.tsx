@@ -27,7 +27,7 @@ export default async function AdminPage() {
         </div>
         <div className="text-right text-xs text-stone-500">
           <p>Generated {new Date(data.generatedAt).toLocaleString()}</p>
-          <Link href="/" className="text-emerald-700 underline">
+          <Link href="/analyze" className="text-emerald-700 underline">
             Back to app
           </Link>
         </div>

@@ -46,9 +46,9 @@ export async function GET(request: Request) {
       const nextParam = searchParams.get("next");
       const rawNext = nextFromCookie
         ? decodeURIComponent(nextFromCookie)
-        : nextParam || "/";
+        : nextParam || "/analyze";
       const safeNext =
-        rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+        rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/analyze";
 
       const response = NextResponse.redirect(`${origin}${safeNext}`);
       response.cookies.delete("auth_next");

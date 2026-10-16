@@ -19,7 +19,7 @@ export default async function DashboardListPage() {
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-stone-900">Your analyses</h1>
           <Link
-            href="/"
+            href="/analyze"
             className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800"
           >
             New analysis
@@ -29,7 +29,7 @@ export default async function DashboardListPage() {
         {jobs.length === 0 ? (
           <p className="text-stone-600">
             No analyses yet.{" "}
-            <Link href="/" className="text-emerald-700 underline">
+            <Link href="/analyze" className="text-emerald-700 underline">
               Run your first one
             </Link>
             .

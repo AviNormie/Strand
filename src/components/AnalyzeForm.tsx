@@ -45,7 +45,7 @@ export function AnalyzeForm({ company }: { company: CompanyPrefill }) {
 
       const data = await res.json();
       if (res.status === 401) {
-        router.push(`/login?next=${encodeURIComponent("/")}`);
+        router.push(`/login?next=${encodeURIComponent("/analyze")}`);
         return;
       }
       if (!res.ok) {

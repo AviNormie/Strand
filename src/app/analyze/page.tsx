@@ -4,7 +4,7 @@ import { BrandLogoCarousel } from "@/components/BrandLogoCarousel";
 import { getOptionalUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export default async function HomePage() {
+export default async function AnalyzePage() {
   const user = await getOptionalUser();
   const company = user
     ? await prisma.company.findUnique({ where: { userId: user.id } })
@@ -23,7 +23,7 @@ export default async function HomePage() {
             over time, and take actions to boost your visibility.
           </p>
           <a
-            href={user ? "#analyze" : "/login"}
+            href={user ? "#analyze" : "/login?next=/analyze"}
             className="mt-8 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
           >
             {user ? "New analysis" : "Log in to start"}

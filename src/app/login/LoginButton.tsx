@@ -7,7 +7,7 @@ export function LoginButton() {
     const supabase = createClient();
     const origin = window.location.origin;
     const params = new URLSearchParams(window.location.search);
-    const next = params.get("next") || "/";
+    const next = params.get("next") || "/analyze";
 
     // Preserve post-login destination without putting query params on redirectTo
     // (Supabase redirect URLs must match the allow list exactly).

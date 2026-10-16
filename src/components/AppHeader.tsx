@@ -14,7 +14,7 @@ export function AppHeader({ user }: { user: AuthUser | null }) {
           </Link>
           {user ? (
             <nav className="flex gap-4 text-sm text-zinc-400">
-              <Link href="/" className="hover:text-white">
+              <Link href="/analyze" className="hover:text-white">
                 New analysis
               </Link>
               <Link href="/dashboard" className="hover:text-white">
