@@ -1,5 +1,7 @@
 "use client";
 
+import { faviconUrlFromDomain } from "@/lib/brand-logo";
+
 const ROWS = [
   [
     { name: "Adobe", domain: "adobe.com" },
@@ -38,17 +40,13 @@ function LogoTile({ name, domain }: { name: string; domain: string }) {
     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 shadow-[0_8px_30px_rgba(0,0,0,0.45)] sm:h-16 sm:w-16">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`https://logo.clearbit.com/${domain}?size=128`}
+        src={faviconUrlFromDomain(domain, 128)}
         alt={name}
         width={36}
         height={36}
         className="h-8 w-8 object-contain sm:h-9 sm:w-9"
         loading="lazy"
         referrerPolicy="no-referrer"
-        onError={(e) => {
-          const el = e.currentTarget;
-          el.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-        }}
       />
     </div>
   );

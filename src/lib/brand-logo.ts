@@ -1,6 +1,7 @@
 /**
  * Resolve brand logo URLs from a website or brand name.
- * Uses Clearbit with Google Favicon fallback (client onError).
+ * Uses Google's favicon service (Clearbit's logo API is shut down). The URL must
+ * work without onError: SSR'd <img> tags can fail before React hydrates.
  */
 
 export function hostnameFromUrl(url?: string | null): string | null {
@@ -23,9 +24,7 @@ export function guessDomainFromName(name: string): string {
 }
 
 export function logoUrlFromDomain(domain: string, size = 128): string {
-  const host = domain.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  // Clearbit often has higher-quality marks; Google favicon is the fallback in BrandLogo.
-  return `https://logo.clearbit.com/${encodeURIComponent(host)}?size=${size}`;
+  return faviconUrlFromDomain(domain, size);
 }
 
 export function faviconUrlFromDomain(domain: string, size = 128): string {
