@@ -19,7 +19,7 @@ export default async function PublicReportPage({
 
   return (
     <>
-      <AppHeader user={null} />
+      <AppHeader user={null} tone="paper" />
       <AnalysisDashboard jobId={jobId} mode="public" />
     </>
   );

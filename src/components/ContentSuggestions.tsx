@@ -21,33 +21,33 @@ export function ContentSuggestions({
   if (!suggestions.length) return null;
 
   return (
-    <section className="border border-zinc-800 bg-zinc-950/60">
-      <div className="border-b border-zinc-800 px-5 py-5">
-        <h2 className="text-2xl font-semibold tracking-tight text-white">
+    <section className="cartoon-card overflow-hidden">
+      <div className="border-b-2 border-ink px-5 py-6 sm:px-8">
+        <h2 className="font-display text-3xl font-bold tracking-tight">
           Content suggestions
         </h2>
-        <p className="mt-2 text-sm text-zinc-400">
+        <p className="mt-2 text-sm text-ink/65">
           Generated content ideas to boost AEO, based on citation and mention
           patterns from your prompts.
         </p>
       </div>
-      <ul className="divide-y divide-zinc-800">
+      <ul className="divide-y-2 divide-ink/10">
         {suggestions.map((s, idx) => (
           <li
             key={`${s.type}-${s.title}-${idx}`}
-            className="flex gap-4 px-5 py-5"
+            className="flex gap-4 px-5 py-5 sm:px-8"
           >
-            <div className="flex h-12 w-10 shrink-0 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 text-sm text-zinc-300">
+            <div className="flex h-12 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-ink bg-accent-yellow text-sm font-bold text-ink">
               {TYPE_ICON[s.type] || "📄"}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-base font-semibold text-white">{s.title}</h3>
-                <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                <h3 className="text-base font-semibold">{s.title}</h3>
+                <span className="rounded-full border-2 border-ink px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
                   {s.type}
                 </span>
               </div>
-              <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-1.5 text-sm leading-relaxed text-ink/70">
                 {s.description}
               </p>
             </div>

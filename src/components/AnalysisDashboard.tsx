@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AiProviderStrip } from "@/components/AiProviderStrip";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ContentSuggestions } from "@/components/ContentSuggestions";
-import { CopyReportLink } from "@/components/CopyReportLink";
 import {
   InsightMetricCard,
   scoreTone,
@@ -257,44 +256,44 @@ export function AnalysisDashboard({
   }, [results, brand]);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-black text-zinc-100">
-      <div className="mx-auto max-w-5xl space-y-10 px-4 py-10">
+    <div className="min-h-screen bg-paper text-ink">
+      <div className="mx-auto max-w-5xl space-y-10 px-4 pb-24 pt-28 sm:px-6 md:pt-32">
         <header>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-zinc-500">
+              <span className="inline-flex items-center rounded-full border-2 border-ink px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]">
                 AI Visibility Report
-              </p>
-              <div className="mt-2 flex items-center gap-3">
+              </span>
+              <div className="mt-4 flex items-center gap-3">
                 <BrandLogo
                   name={brand}
                   website={results?.website}
                   domain={results?.brandDomains?.[brand]}
                   logoUrl={results?.brandLogos?.[brand]}
-                  size={36}
+                  size={40}
                 />
-                <h1 className="font-sans text-3xl font-semibold tracking-tight text-white">
+                <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
                   {brand}
                 </h1>
               </div>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/65">
                 {isPublic
                   ? "Shared AEO report — no login required."
                   : status?.progressMessage ||
                     "Querying answer engines and analyzing the responses."}
                 {!isPublic && (
                   <>
-                    {" · "}
+                    {" "}
                     <span
-                      className={
+                      className={`ml-1 inline-flex rounded-full border-2 border-ink px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
                         isProcessing
-                          ? "font-medium text-emerald-400"
+                          ? "bg-accent-green"
                           : isFailed
-                            ? "font-medium text-red-400"
+                            ? "bg-red-300"
                             : isDone
-                              ? "font-medium text-zinc-200"
-                              : "font-medium text-amber-400"
-                      }
+                              ? "bg-white"
+                              : "bg-accent-yellow"
+                      }`}
                     >
                       {jobStatus}
                     </span>
@@ -302,23 +301,22 @@ export function AnalysisDashboard({
                 )}
               </p>
             </div>
-            {isDone && <CopyReportLink reportPath={reportPath} />}
           </div>
 
           {(results?.providers?.length || isDone) && (
             <AiProviderStrip
               providers={results?.providers}
-              className="mt-5"
+              className="mt-6"
             />
           )}
 
           {results?.competitors?.length ? (
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-zinc-500">Tracked competitors</span>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="font-hand text-lg">Tracked competitors</span>
               {results.competitors.map((c) => (
                 <span
                   key={c}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-xs text-zinc-300"
+                  className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-white px-2.5 py-1 text-xs font-medium"
                 >
                   <BrandLogo
                     name={c}
@@ -334,26 +332,28 @@ export function AnalysisDashboard({
         </header>
 
         {!isPublic && !isDone && !isFailed && (
-          <div className="space-y-3 border border-zinc-800 bg-zinc-900/40 p-5">
-            <div className="mb-2 flex justify-between text-sm text-zinc-400">
-              <span>Progress</span>
-              <span>{progress}%</span>
+          <div className="cartoon-card space-y-3 p-5 sm:p-6">
+            <div className="flex justify-between">
+              <span className="font-hand text-xl">Progress</span>
+              <span className="font-display text-xl font-bold tabular-nums">
+                {progress}%
+              </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
+            <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-white">
               <div
-                className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                className="h-full bg-accent-yellow transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
               />
             </div>
             {isQueued && pollCount >= 10 && (
-              <div className="mt-3 space-y-2 rounded border border-amber-500/30 bg-amber-500/10 p-3">
-                <p className="text-sm text-amber-200/90">
+              <div className="mt-3 space-y-3 rounded-2xl border-2 border-ink bg-accent-yellow/40 p-4">
+                <p className="text-sm">
                   Analysis is taking longer than expected. The worker may be processing other jobs or starting up.
                 </p>
                 <button
                   onClick={handleRetry}
                   disabled={isRetrying}
-                  className="rounded bg-amber-500/20 px-3 py-1.5 text-sm font-medium text-amber-100 hover:bg-amber-500/30 disabled:opacity-50"
+                  className="cartoon-btn px-4 py-1.5 text-sm disabled:opacity-50"
                 >
                   {isRetrying ? "Checking..." : "Check Status Again"}
                 </button>
@@ -363,14 +363,14 @@ export function AnalysisDashboard({
         )}
 
         {fetchError && (
-          <p className="border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+          <p className="rounded-2xl border-2 border-ink bg-accent-yellow/40 px-4 py-3 text-sm">
             {isPublic ? "Could not load report: " : "Status poll error: "}
             {fetchError}
           </p>
         )}
 
         {isFailed && (
-          <p className="border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+          <p className="rounded-2xl border-2 border-ink bg-red-100 px-4 py-3 text-sm text-red-900">
             {status?.error || "Analysis failed"}
           </p>
         )}
@@ -387,20 +387,10 @@ export function AnalysisDashboard({
               showCta={isPublic}
             />
 
-            <section>
-              <div className="grid grid-cols-1 border border-zinc-800 sm:grid-cols-2">
-                {insightCards.map((card, i) => (
-                  <div
-                    key={card.title}
-                    className={[
-                      i % 2 === 1 ? "sm:border-l sm:border-zinc-800" : "",
-                      i >= 2 ? "border-t border-zinc-800" : "",
-                    ].join(" ")}
-                  >
-                    <InsightMetricCard {...card} />
-                  </div>
-                ))}
-              </div>
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {insightCards.map((card) => (
+                <InsightMetricCard key={card.title} {...card} />
+              ))}
             </section>
 
             <section className="grid gap-4 sm:grid-cols-3">
@@ -422,11 +412,11 @@ export function AnalysisDashboard({
               />
             </section>
 
-            <section className="border border-zinc-800 bg-zinc-950/60 p-5">
-              <h2 className="font-sans text-lg font-semibold text-white">
+            <section className="cartoon-card p-5 sm:p-8">
+              <h2 className="font-display text-2xl font-bold">
                 Competitor share of voice
               </h2>
-              <div className="mt-4 space-y-3">
+              <div className="mt-5 space-y-3">
                 {Object.entries(results.metrics.competitorShare || {})
                   .filter(([k]) => !k.startsWith("__"))
                   .sort((a, b) => b[1] - a[1])
@@ -439,14 +429,18 @@ export function AnalysisDashboard({
                         website={name === brand ? results.website : null}
                         size={24}
                       />
-                      <span className="w-36 truncate text-zinc-300">{name}</span>
-                      <div className="h-1.5 flex-1 rounded-full bg-zinc-800">
+                      <span
+                        className={`w-36 truncate ${name === brand ? "font-semibold" : "text-ink/80"}`}
+                      >
+                        {name}
+                      </span>
+                      <div className="h-3 flex-1 overflow-hidden rounded-full border-2 border-ink bg-white">
                         <div
-                          className="h-full rounded-full bg-emerald-500/80"
+                          className={`h-full ${name === brand ? "bg-accent-yellow" : "bg-accent-blue"}`}
                           style={{ width: `${Math.min(100, share * 100)}%` }}
                         />
                       </div>
-                      <span className="w-14 text-right tabular-nums text-zinc-500">
+                      <span className="w-14 text-right font-medium tabular-nums">
                         {(share * 100).toFixed(1)}%
                       </span>
                     </div>
@@ -459,8 +453,8 @@ export function AnalysisDashboard({
             )}
 
             {parsedRec.markdown && (
-              <section className="border border-zinc-800 bg-zinc-950/60 p-5 sm:p-8">
-                <h2 className="mb-6 font-sans text-2xl font-semibold tracking-tight text-white">
+              <section className="cartoon-card p-5 sm:p-8">
+                <h2 className="font-display mb-6 text-3xl font-bold tracking-tight">
                   Strategic recommendations
                 </h2>
                 <MarkdownReport content={parsedRec.markdown} />
@@ -468,54 +462,54 @@ export function AnalysisDashboard({
             )}
 
             {Array.isArray(results.warnings) && results.warnings.length > 0 && (
-              <p className="text-sm text-amber-300/90">
+              <p className="text-sm text-ink/60">
                 Warnings: {results.warnings.join("; ")}
               </p>
             )}
 
             {!isPublic && (
               <section>
-                <h2 className="font-sans text-lg font-semibold text-white">
+                <h2 className="font-display text-2xl font-bold">
                   Prompt results
                 </h2>
                 <div className="mt-4 space-y-3">
                   {results.prompts.map((p) => (
                     <details
                       key={p.id}
-                      className="border border-zinc-800 bg-zinc-950/50 open:bg-zinc-900/40"
+                      className="overflow-hidden rounded-2xl border-2 border-ink bg-white/60 open:bg-white open:shadow-[3px_3px_0_0_#111]"
                     >
-                      <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-zinc-200">
-                        <span className="mr-2 rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-zinc-400">
+                      <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
+                        <span className="mr-2 rounded-full border-2 border-ink bg-accent-yellow px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                           {p.category}
                         </span>
                         {p.prompt}
                       </summary>
-                      <div className="space-y-4 border-t border-zinc-800 px-4 py-4">
+                      <div className="space-y-4 border-t-2 border-ink px-4 py-4">
                         {p.responses.map((r) => (
                           <div key={r.id} className="text-sm">
-                            <div className="flex flex-wrap items-center gap-2 font-medium text-zinc-200">
+                            <div className="flex flex-wrap items-center gap-2 font-semibold">
                               <span className="capitalize">{r.provider}</span>
-                              <span className="text-xs font-normal text-zinc-500">
+                              <span className="text-xs font-normal text-ink/50">
                                 {r.model}
                                 {r.latencyMs != null
                                   ? ` · ${r.latencyMs}ms`
                                   : ""}
                               </span>
                               {r.extracted?.sentiment && (
-                                <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-xs text-emerald-300">
+                                <span className="rounded-full border border-ink bg-accent-green/60 px-2 py-0.5 text-xs font-medium">
                                   {r.extracted.sentiment}
                                 </span>
                               )}
                               {r.extracted?.ranking != null && (
-                                <span className="text-xs text-zinc-500">
+                                <span className="text-xs font-normal text-ink/50">
                                   Rank #{r.extracted.ranking}
                                 </span>
                               )}
                             </div>
                             {r.error ? (
-                              <p className="mt-1 text-red-400">{r.error}</p>
+                              <p className="mt-1 text-red-700">{r.error}</p>
                             ) : (
-                              <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-zinc-400">
+                              <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-ink/70">
                                 {r.rawResponse}
                               </p>
                             )}
@@ -536,11 +530,9 @@ export function AnalysisDashboard({
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-zinc-800 bg-zinc-950/60 px-4 py-4">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-semibold tabular-nums text-white">
+    <div className="cartoon-card px-5 py-4">
+      <p className="font-hand text-lg text-ink/70">{label}</p>
+      <p className="font-display mt-1 text-3xl font-bold tabular-nums">
         {value}
       </p>
     </div>

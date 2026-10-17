@@ -21,7 +21,7 @@ export default async function JobDashboardPage({
 
   return (
     <>
-      <AppHeader user={user} />
+      <AppHeader user={user} tone="paper" />
       <AnalysisDashboard jobId={jobId} />
     </>
   );

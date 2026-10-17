@@ -23,20 +23,20 @@ export function LoginButton() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-      <div className="w-full max-w-md text-center">
-        <p className="text-sm font-medium tracking-wide text-emerald-400 uppercase">
+      <div className="cartoon-card w-full max-w-md p-8 text-center sm:p-10">
+        <p className="inline-flex items-center rounded-full border-2 border-ink px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]">
           Strand
         </p>
-        <h1 className="mt-3 font-sans text-3xl font-semibold tracking-tight text-white">
+        <h1 className="font-display mt-4 text-4xl font-bold tracking-tight">
           AI Visibility
         </h1>
-        <p className="mt-3 text-zinc-400">
+        <p className="mt-3 text-ink/65">
           See how often AI assistants recommend your brand — and how to improve.
         </p>
         <button
           type="button"
           onClick={signInWithGoogle}
-          className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+          className="sticker-btn-fill mt-8 w-full justify-center !gap-3 !py-3 !text-sm"
         >
           <GoogleIcon />
           Continue with Google

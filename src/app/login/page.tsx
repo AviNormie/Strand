@@ -14,10 +14,10 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
-      <AppHeader user={null} />
+    <div className="flex min-h-screen flex-col bg-paper pt-24 text-ink">
+      <AppHeader user={null} tone="paper" />
       {error === "auth" ? (
-        <p className="mx-auto mt-6 max-w-md rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-center text-sm text-red-200">
+        <p className="mx-auto mt-6 max-w-md rounded-2xl border-2 border-ink bg-red-100 px-4 py-2 text-center text-sm text-red-900">
           Sign-in failed. Please try again.
         </p>
       ) : null}

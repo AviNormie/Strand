@@ -1,5 +1,7 @@
 "use client";
 
+import { faviconUrlFromDomain } from "@/lib/brand-logo";
+
 const PROVIDERS: Array<{
   id: string;
   label: string;
@@ -9,7 +11,7 @@ const PROVIDERS: Array<{
   {
     id: "openai",
     label: "ChatGPT",
-    src: "https://cdn.simpleicons.org/openai/ffffff",
+    src: faviconUrlFromDomain("chatgpt.com", 64),
   },
   {
     id: "gemini",
@@ -45,14 +47,14 @@ export function AiProviderStrip({
 
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
-      <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+      <span className="font-hand text-lg">
         Answer engines
       </span>
       <div className="flex flex-wrap items-center gap-2">
         {active.map((p) => (
           <div
             key={p.id}
-            className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1.5"
+            className="flex items-center gap-2 rounded-full border-2 border-ink bg-white px-3 py-1.5 shadow-[2px_2px_0_0_#111]"
             title={p.label}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,7 +66,7 @@ export function AiProviderStrip({
               className="h-4 w-4"
               loading="lazy"
             />
-            <span className="text-xs font-medium text-zinc-200">{p.label}</span>
+            <span className="text-xs font-semibold text-ink">{p.label}</span>
           </div>
         ))}
       </div>
