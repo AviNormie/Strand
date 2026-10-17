@@ -216,8 +216,8 @@ export function SiteNav() {
               →
             </span>
           </NavButton>
-          <NavButton href="/coming-soon" variant="dark">
-            <span>Get early access</span>
+          <NavButton href="/analyze" variant="dark">
+            <span>Start free scan</span>
             <span
               className="sticker-arrow !h-5 !w-5 !bg-paper !text-[10px] !text-ink"
               aria-hidden="true"

@@ -37,7 +37,7 @@ const ROWS = [
 
 function LogoTile({ name, domain }: { name: string; domain: string }) {
   return (
-    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 shadow-[0_8px_30px_rgba(0,0,0,0.45)] sm:h-16 sm:w-16">
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-ink bg-white shadow-[3px_3px_0_0_#111] sm:h-16 sm:w-16">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={faviconUrlFromDomain(domain, 128)}
@@ -90,7 +90,7 @@ export function BrandLogoCarousel() {
         }}
       >
         <div
-          className="origin-center space-y-3 opacity-90"
+          className="origin-center space-y-3"
           style={{
             transform: "rotateX(38deg) rotateZ(-6deg) scale(0.88)",
             transformStyle: "preserve-3d",
@@ -101,8 +101,8 @@ export function BrandLogoCarousel() {
           <MarqueeRow brands={ROWS[2]} duration="40s" />
         </div>
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-paper to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-paper to-transparent" />
     </div>
   );
 }

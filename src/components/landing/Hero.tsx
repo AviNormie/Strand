@@ -261,7 +261,7 @@ function HeroInner() {
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <a
-            href="/coming-soon"
+            href="/analyze"
             data-hero-cta
             className="sticker-btn-fill !px-5 !py-3 !text-sm uppercase tracking-wide"
           >

@@ -62,21 +62,21 @@ export function AnalyzeForm({ company }: { company: CompanyPrefill }) {
   return (
     <form onSubmit={onSubmit} className="mx-auto w-full max-w-xl space-y-5">
       <div>
-        <label htmlFor="companyName" className="block text-sm font-medium text-stone-700">
-          Company name <span className="text-red-600">*</span>
+        <label htmlFor="companyName" className="font-hand block text-lg text-ink">
+          Company name <span className="text-[#d9534f]">*</span>
         </label>
         <input
           id="companyName"
           required
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+          className="mt-1.5 w-full rounded-2xl border-2 border-ink bg-white px-3.5 py-2.5 text-ink outline-none transition-shadow placeholder:text-ink/35 focus:shadow-[3px_3px_0_0_#111]"
           placeholder="Nike"
         />
       </div>
 
       <div>
-        <label htmlFor="website" className="block text-sm font-medium text-stone-700">
+        <label htmlFor="website" className="font-hand block text-lg text-ink">
           Website
         </label>
         <input
@@ -84,13 +84,13 @@ export function AnalyzeForm({ company }: { company: CompanyPrefill }) {
           type="url"
           value={website}
           onChange={(e) => setWebsite(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+          className="mt-1.5 w-full rounded-2xl border-2 border-ink bg-white px-3.5 py-2.5 text-ink outline-none transition-shadow placeholder:text-ink/35 focus:shadow-[3px_3px_0_0_#111]"
           placeholder="https://nike.com"
         />
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-stone-700">
+        <label htmlFor="description" className="font-hand block text-lg text-ink">
           Description
         </label>
         <textarea
@@ -98,15 +98,15 @@ export function AnalyzeForm({ company }: { company: CompanyPrefill }) {
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+          className="mt-1.5 w-full rounded-2xl border-2 border-ink bg-white px-3.5 py-2.5 text-ink outline-none transition-shadow placeholder:text-ink/35 focus:shadow-[3px_3px_0_0_#111]"
           placeholder="Leading athletic footwear and apparel company."
         />
       </div>
 
       <div>
-        <label htmlFor="competitors" className="block text-sm font-medium text-stone-700">
+        <label htmlFor="competitors" className="font-hand block text-lg text-ink">
           Competitors{" "}
-          <span className="font-normal text-stone-500">
+          <span className="text-sm text-ink/55">
             (optional, one per line — we typo-correct names and auto-add top 5 more)
           </span>
         </label>
@@ -115,25 +115,30 @@ export function AnalyzeForm({ company }: { company: CompanyPrefill }) {
           rows={4}
           value={competitors}
           onChange={(e) => setCompetitors(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+          className="mt-1.5 w-full rounded-2xl border-2 border-ink bg-white px-3.5 py-2.5 text-ink outline-none transition-shadow placeholder:text-ink/35 focus:shadow-[3px_3px_0_0_#111]"
           placeholder={"Adidas\nPuma\nNew Balance"}
         />
-        <p className="mt-1.5 text-xs text-stone-500">
+        <p className="mt-1.5 text-xs text-ink/55">
           Brand names are corrected automatically. We also discover five additional
           competitors and dedupe against your brand and inputs.
         </p>
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-2xl border-2 border-ink bg-[#E8A598]/40 px-3 py-2 text-sm text-ink">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-emerald-700 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:opacity-60"
+        className="sticker-btn-fill w-full justify-center !py-3 uppercase tracking-wide disabled:opacity-60"
       >
-        {loading ? "Starting analysis…" : "Analyze"}
+        <span>{loading ? "Starting analysis…" : "Analyze"}</span>
+        {!loading && (
+          <span className="sticker-arrow" aria-hidden="true">
+            →
+          </span>
+        )}
       </button>
     </form>
   );

@@ -132,7 +132,7 @@ export function FinalCta() {
           </svg>
           <a
             ref={buttonRef}
-            href="/coming-soon"
+            href="/analyze"
             className="font-hand relative z-10 rounded-full border-2 border-ink bg-accent-yellow px-10 py-4 text-xl text-ink transition hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
           >
             Find my strand

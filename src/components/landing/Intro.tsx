@@ -94,7 +94,7 @@ export function Intro() {
                   →
                 </span>
               </a>
-              <a href="/coming-soon" className="sticker-btn">
+              <a href="/analyze" className="sticker-btn">
                 <svg
                   width="16"
                   height="16"
@@ -112,7 +112,7 @@ export function Intro() {
                   />
                   <path d="M10 8 H3" stroke="#111" strokeWidth="1.4" strokeLinecap="round" />
                 </svg>
-                <span>Get early access</span>
+                <span>Start free scan</span>
                 <span className="sticker-arrow" aria-hidden="true">
                   →
                 </span>

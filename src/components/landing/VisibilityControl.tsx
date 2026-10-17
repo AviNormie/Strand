@@ -255,11 +255,11 @@ export function VisibilityControl() {
       </div>
 
       <div className="mt-10 flex justify-center">
-        <a href="/coming-soon" className="sticker-btn !px-6 !py-3 !text-base">
+        <a href="/analyze" className="sticker-btn !px-6 !py-3 !text-base">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M2 8 L14 3 L10 8 L14 13 Z" stroke="#111" strokeWidth="1.4" strokeLinejoin="round" />
           </svg>
-          <span>Get early access</span>
+          <span>Start free scan</span>
           <span className="sticker-arrow" aria-hidden="true">
             →
           </span>
