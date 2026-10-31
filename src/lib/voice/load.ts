@@ -23,6 +23,8 @@ export async function loadVoiceFacts(
     where: {
       userId,
       companyId: job.companyId,
+      // Company is one row per user, so the name keeps e.g. Nike from being compared with SvsFoods.
+      companyName: { equals: job.companyName, mode: "insensitive" },
       status: "COMPLETED",
       createdAt: { lt: job.createdAt },
       metrics: { isNot: null },
