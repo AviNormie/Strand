@@ -6,7 +6,11 @@ import { getConfig, type AppConfig } from "@/lib/config";
 import { createLogger } from "@/lib/logger";
 import type { ReportFacts } from "@/lib/voice/facts";
 import { findUngroundedNumbers, mentionsBrand } from "@/lib/voice/grounding";
-import { getVoiceLanguage, type VoiceLanguageCode } from "@/lib/voice/languages";
+import {
+  getVoiceLanguage,
+  isInLanguageScript,
+  type VoiceLanguageCode,
+} from "@/lib/voice/languages";
 
 const log = createLogger("service:voice-agent");
 
@@ -181,16 +185,20 @@ function factsText(facts: ReportFacts) {
 /** Listing the exact names stops models transliterating them (e.g. HubSpot -> हबस्पॉट). */
 function languageLine(code: VoiceLanguageCode, facts: ReportFacts) {
   const names = [facts.brand, ...facts.competitors.slice(0, 8).map((c) => c.name)].join(", ");
-  return `Respond in ${getVoiceLanguage(code).prompt}. Write these names exactly as spelled here, in Latin letters, never transliterated: ${names}.`;
+  return `Respond in ${getVoiceLanguage(code).prompt}. Only these names stay exactly as spelled here, never transliterated: ${names}. Everything else follows the language and script requested.`;
 }
 
 /** `spoken` must name the brand verbatim when required; `extra` text is only checked for invented numbers. */
 function checkGrounding(
   spoken: string,
   facts: ReportFacts,
+  language: VoiceLanguageCode,
   opts: { requireBrand?: boolean; extra?: string; allowedFrom?: string } = {}
 ) {
   const issues: string[] = [];
+  if (!isInLanguageScript(spoken, language)) {
+    issues.push(`Write the reply in ${getVoiceLanguage(language).prompt}, not romanized`);
+  }
   const bad = findUngroundedNumbers(`${spoken}\n${opts.extra ?? ""}`, facts, opts.allowedFrom);
   if (bad.length) issues.push(`These numbers are not in the facts: ${bad.join(", ")}`);
   if (opts.requireBrand && !mentionsBrand(spoken, facts)) {
@@ -392,7 +400,7 @@ Write the briefing for ${facts.brand}${facts.previousReportDate ? ` comparing th
         schemaName: "briefing",
       }),
     (b) =>
-      checkGrounding(b.script, facts, {
+      checkGrounding(b.script, facts, language, {
         requireBrand: true,
         extra: [...b.highlights, ...b.nextActions].join("\n"),
       })
@@ -448,7 +456,7 @@ export async function answerQuestion(
         if (!answer) throw new VoiceAgentError("Empty answer from the AI", 502);
         return answer;
       },
-      (answer) => checkGrounding(answer, facts)
+      (answer) => checkGrounding(answer, facts, language)
     );
     return { answer: result, warnings };
   });
@@ -483,7 +491,7 @@ export async function tutorReply(
         return { reply: reply.reply.trim(), suggestions: reply.suggestions.slice(0, 3) };
       },
       // The metric definitions legitimately contain numbers (weights, "top 3").
-      (r) => checkGrounding(r.reply, facts, { allowedFrom: METRIC_DEFINITIONS })
+      (r) => checkGrounding(r.reply, facts, language, { allowedFrom: METRIC_DEFINITIONS })
     );
     return { ...result, warnings };
   });

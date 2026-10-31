@@ -17,7 +17,7 @@ import {
 } from "@/lib/services/voice-agent.service";
 import { buildReportFacts } from "./facts";
 import { findUngroundedNumbers, mentionsBrand } from "./grounding";
-import { getVoiceLanguage } from "./languages";
+import { getVoiceLanguage, isInLanguageScript } from "./languages";
 import { pickVoice, splitSentences } from "./speech";
 
 function response(promptId: string, brands: string[], citations: string[], ranking: number | null = null) {
@@ -180,7 +180,15 @@ describe("languages and speech chunks", () => {
     assert.equal(getVoiceLanguage("xx").code, "en");
   });
 
-  test("sentence split keeps decimals and handles Devanagari danda", () => {
+  test("script check catches romanized replies for non-Latin languages only", () => {
+    assert.ok(isInLanguageScript("Acme CRM की visibility 42.3 है।", "hi"));
+    assert.ok(!isInLanguageScript("Acme CRM ki visibility 42.3 hai.", "hi"));
+    assert.ok(isInLanguageScript("Acme CRM ki visibility 42.3 hai.", "hinglish"));
+    assert.ok(!isInLanguageScript("Acme CRM visibility", "ta"));
+    assert.ok(isInLanguageScript("La visibilité de Acme CRM", "fr"));
+  });
+
+    test("sentence split keeps decimals and handles Devanagari danda", () => {
     assert.deepEqual(splitSentences("Score is 42.3 now. Great! दृश्यता बढ़ी। Done"), [
       "Score is 42.3 now.",
       "Great!",
@@ -244,7 +252,7 @@ describe("voice agent (Claude calls, faked)", () => {
     assert.deepEqual(b.warnings, []);
     assert.equal(b.comparedTo, "2026-10-23");
     assert.match(userText(calls[0]), /Respond in Hindi, in Devanagari script/);
-    assert.match(userText(calls[0]), /exactly as spelled here, in Latin letters, never transliterated: Acme CRM, HubSpot, Zoho\./);
+    assert.match(userText(calls[0]), /Only these names stay exactly as spelled here, never transliterated: Acme CRM, HubSpot, Zoho\./);
     assert.match(JSON.stringify(calls[0].system), /REPORT FACTS/);
     assert.equal(calls[0].tools, undefined);
     assert.equal(calls[0].model, "claude-haiku-5-5");
@@ -273,7 +281,18 @@ describe("voice agent (Claude calls, faked)", () => {
     assert.deepEqual(b.warnings, []);
   });
 
-  test("translated brand name triggers a retry; persistent failure is flagged, not hidden", async () => {
+  test("romanized Hindi triggers a corrective retry", async () => {
+    const { calls, deps } = fakeClaude([
+      briefingReply("Acme CRM ki visibility 42.3 hai."),
+      briefingReply("Acme CRM की visibility 42.3 है।"),
+    ]);
+    const b = await getBriefing("k", facts, "hi", "u1", deps);
+    assert.equal(calls.length, 2);
+    assert.match(userText(calls[1]), /not romanized/);
+    assert.deepEqual(b.warnings, []);
+  });
+
+    test("translated brand name triggers a retry; persistent failure is flagged, not hidden", async () => {
     const { calls, deps } = fakeClaude([
       briefingReply("एक्मे सीआरएम की visibility 42.3 है।"),
       briefingReply("एक्मे सीआरएम की visibility 42.3 है।"),
