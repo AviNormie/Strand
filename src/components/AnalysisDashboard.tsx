@@ -11,6 +11,7 @@ import {
 } from "@/components/InsightMetricCard";
 import { MarkdownReport } from "@/components/MarkdownReport";
 import { ReportRankingHero } from "@/components/ReportRankingHero";
+import { VoiceSummaryButton } from "@/components/VoiceSummaryButton";
 import {
   parseRecommendationContent,
   type ContentSuggestion,
@@ -236,6 +237,27 @@ export function AnalysisDashboard({
     ];
   }, [results?.metrics, brand]);
 
+  const voiceSummary = useMemo(() => {
+    const m = results?.metrics;
+    if (!m) return "";
+    const rivals = Object.entries(m.competitorShare || {})
+      .filter(([k]) => !k.startsWith("__") && k !== brand)
+      .sort((a, b) => b[1] - a[1]);
+    const parts = [
+      `Here is the AI visibility summary for ${brand}.`,
+      `${brand} has a visibility score of ${fmt(m.visibilityScore)} and appears in ${fmt(m.mentionRate)} percent of AI answers.`,
+      `Its share of voice is ${fmt(m.shareOfVoice)} percent, and assistants recommend it in ${fmt(m.recommendationRate)} percent of answers.`,
+    ];
+    if (m.avgRanking != null) parts.push(`Its average ranking is ${fmt(m.avgRanking)}.`);
+    if (m.positiveSentimentRate != null)
+      parts.push(`Sentiment is positive ${fmt(m.positiveSentimentRate)} percent of the time.`);
+    if (rivals.length)
+      parts.push(`The leading competitor is ${rivals[0][0]}, with ${fmt(rivals[0][1] * 100)} percent share of voice.`);
+    if (parsedRec.contentSuggestions.length)
+      parts.push(`The report includes ${parsedRec.contentSuggestions.length} content suggestions to improve your visibility.`);
+    return parts.join(" ");
+  }, [results?.metrics, brand, parsedRec.contentSuggestions.length]);
+
   const rankingRows = useMemo(() => {
     const share = results?.metrics?.competitorShare || {};
     const logos = results?.brandLogos || {};
@@ -301,6 +323,7 @@ export function AnalysisDashboard({
                 )}
               </p>
             </div>
+            {isDone && voiceSummary && <VoiceSummaryButton text={voiceSummary} />}
           </div>
 
           {(results?.providers?.length || isDone) && (
