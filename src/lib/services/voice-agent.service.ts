@@ -93,6 +93,15 @@ function defaultDeps(): Deps {
   return { llms };
 }
 
+/** The tutor runs on OpenAI only (no Claude fallback), per the tutor spec. */
+export function tutorLlms(llms: VoiceLlm[]): VoiceLlm[] {
+  const openai = llms.filter((l) => l.name.startsWith("openai:"));
+  if (!openai.length) {
+    throw new VoiceAgentError("Voice tutor needs OPENAI_API_KEY on the server", 503);
+  }
+  return openai;
+}
+
 /** Any failure (bad key, rate limit, outage, refusal, malformed output) moves on to the next backend. */
 async function withFallback<T>(llms: VoiceLlm[], run: (llm: VoiceLlm) => Promise<T>): Promise<T> {
   let firstError: unknown;
@@ -120,7 +129,8 @@ const SPEAKING_RULES = `Speaking style:
 - Your words are read aloud by a text-to-speech voice. Conversational, warm, concise. No markdown, bullets, emojis, URLs or tables in spoken text.
 - Write every number with Western digits (0-9) exactly as it appears in the facts, rounded to at most one decimal.
 - Keep brand names, competitor names, product names, AI assistant names and source domains exactly as written in the facts, untranslated.
-- When writing in another language, keep common technical terms (share of voice, visibility score, citation, prompt) in English where a native speaker would.`;
+- When writing in another language, keep common technical terms (share of voice, visibility score, citation, prompt) in English where a native speaker would.
+- Never assume the listener's gender. In gendered languages use respectful, gender-neutral address (for example "aap" with forms like "aap sochte hain" / "kya aap chahenge" in Hindi and Hinglish), never gendered verb forms aimed at the listener.`;
 
 // Stable across languages and turns so the facts block stays prompt-cached.
 const ANALYST_SYSTEM = `You are Strand's voice analyst. Strand measures how often AI assistants (ChatGPT, Gemini, Claude, Groq) mention, rank and cite a brand versus its competitors. You speak to the brand's marketing team.
@@ -152,6 +162,7 @@ ${METRIC_DEFINITIONS}
 How to teach:
 - Match the learner's level (given each turn): beginner = everyday words and analogies, no jargon without a plain explanation; intermediate = precise terms with short explanations; expert = concise, tactical, assumes SEO knowledge.
 - One idea at a time: 2 to 5 short spoken sentences. Sound like a person talking, not a report. When it helps, end with a short check-in question or an offer to go deeper.
+- Lessons: when the learner asks for a lesson, teach a short guided session one step per reply (for example: what AI visibility is, how Strand measures it, what their report shows, what to do next). End each step with a quick knowledge-check question and wait for the answer before moving on.
 - Quizzes and knowledge checks: when the learner asks to be quizzed, ask one question at a time (about concepts or their own report), wait for their answer, then say whether it is right and why, using the facts. Keep score only if they ask.
 - Remember the conversation so far and build on it.
 - Reply in the requested language even if earlier turns used another one. If the learner mixes languages (for example Hindi and English), mirror that naturally.
@@ -238,6 +249,8 @@ function jsonSchema(schema: z.ZodType): Record<string, unknown> {
 }
 
 export function openaiVoiceLlm(client: OpenAI, model: string): VoiceLlm {
+  // Voice needs quick turns: reasoning models default to medium effort (~15s/reply). Others reject the param.
+  const effort = /^(gpt-5|o\d)/.test(model) ? { reasoning_effort: "low" as const } : {};
   const messages = (req: LlmRequest) => [
     { role: "system" as const, content: `${req.system}\n\n${factsText(req.facts)}` },
     ...req.messages,
@@ -247,6 +260,7 @@ export function openaiVoiceLlm(client: OpenAI, model: string): VoiceLlm {
     async json(req) {
       const response = await client.chat.completions.create({
         model,
+        ...effort,
         messages: messages(req),
         response_format: {
           type: "json_schema",
@@ -266,7 +280,7 @@ export function openaiVoiceLlm(client: OpenAI, model: string): VoiceLlm {
       return parsed.data;
     },
     async text(req) {
-      const response = await client.chat.completions.create({ model, messages: messages(req) });
+      const response = await client.chat.completions.create({ model, ...effort, messages: messages(req) });
       const message = response.choices[0]?.message;
       if (message?.refusal) refused();
       return (message?.content ?? "").trim();
@@ -449,7 +463,7 @@ export async function tutorReply(
   deps?: Deps
 ): Promise<TutorReply> {
   assertWithinRateLimit(userId);
-  const { llms } = deps ?? defaultDeps();
+  const llms = tutorLlms((deps ?? defaultDeps()).llms);
   const prior = trimHistory(history, MAX_TUTOR_HISTORY_TURNS);
   const ask = `${languageLine(language, facts)} Learner level: ${level}.\n\nLearner: ${message}`;
 

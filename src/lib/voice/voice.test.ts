@@ -396,6 +396,24 @@ describe("voice agent (Claude calls, faked)", () => {
     assert.equal(res.reply, "Mention rate carries 35% of the visibility score.");
   });
 
+  test("tutor runs on OpenAI only: no Claude fallback, clear error without an OpenAI key", async () => {
+    const claude = fakeClaude([]);
+    const openai = fakeOpenAI([JSON.stringify({ reply: "Not valid for this check", suggestions: [] })]);
+    // OpenAI fails (malformed); the tutor must not fall through to Claude.
+    openai.llm.json = async () => {
+      throw new VoiceAgentError("The AI reply came back malformed", 502);
+    };
+    await assert.rejects(
+      tutorReply(facts, "en", "beginner", [], "Hi", "u1", { llms: [openai.llm, ...claude.deps.llms] }),
+      (e: VoiceAgentError) => e.status === 502
+    );
+    assert.equal(claude.calls.length, 0);
+    await assert.rejects(
+      tutorReply(facts, "en", "beginner", [], "Hi", "u1", claude.deps),
+      (e: VoiceAgentError) => e.status === 503 && /OPENAI_API_KEY/.test(e.message)
+    );
+  });
+
   test("per-user rate limit", () => {
     for (let i = 0; i < 30; i++) assertWithinRateLimit("u2", 1000);
     assert.throws(() => assertWithinRateLimit("u2", 1000), (e: VoiceAgentError) => e.status === 429);

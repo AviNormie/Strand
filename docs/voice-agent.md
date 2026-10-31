@@ -29,11 +29,15 @@ VoiceTutor ────── POST /api/voice/[jobId]/tutor    {language, level,
 
 ## Voice tutor
 
+- Runs on OpenAI only (`VOICE_OPENAI_MODEL`); unlike the briefing and Q&A it has no Claude fallback, and without
+  `OPENAI_API_KEY` the tutor endpoint returns 503. Reasoning models are called with low reasoning effort to keep
+  spoken turns around 5 seconds (medium took ~15s).
 - Central mic: tap to talk (live interim caption while speaking), tap again to send; tapping while the tutor speaks
   interrupts it. Hands-free mode listens again after each answer. Pause / resume / stop / replay, sentence highlighting.
 - Learner level (New to this / Some SEO / Expert) changes how explanations are pitched. The tutor explains concepts
   (share of voice, citations, sentiment, prompt tracking, benchmarking, GEO vs SEO) using Strand's real metric formulas
-  and ties them to the brand's own facts; it runs quizzes one question at a time when asked.
+  and ties them to the brand's own facts. "Start a short lesson" runs a guided session one step per reply, each
+  ending in a knowledge check; quizzes run one question at a time. It addresses the learner gender-neutrally.
 - Language can change mid-conversation; replies follow the selected language and mirror Hindi/English code-switching.
 - Suggested questions start from the brand/competitors and are then generated per reply. The conversation is kept in
   `sessionStorage` (per report, last 40 turns); language and level in `localStorage`.

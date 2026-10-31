@@ -47,6 +47,7 @@ function readSession(jobId: string): Turn[] {
 
 function starterSuggestions(brand: string, competitors: string[]) {
   return [
+    "Start a short lesson on AI visibility",
     "Explain my visibility score like I'm new to this",
     competitors[0] ? `Why is ${competitors[0]} ahead of ${brand}?` : `Where is ${brand} weakest?`,
     "What is GEO and how is it different from SEO?",
