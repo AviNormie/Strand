@@ -33,8 +33,10 @@ const envSchema = z.object({
   OPENAI_MODEL: z.string().default("gpt-4o"),
   GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
   CLAUDE_MODEL: z.string().default("claude-sonnet-4-20250514"),
-  /** Voice agent (briefings + Q&A). Claude-only; no web search. */
-  VOICE_MODEL: z.string().default("claude-opus-5-5"),
+  /** Voice agent primary (briefings, Q&A, tutor): an affordable OpenAI model, separate from the search OPENAI_MODEL. */
+  VOICE_OPENAI_MODEL: z.string().default("gpt-5-mini"),
+  /** Voice agent fallback when OpenAI fails. No web search. */
+  VOICE_MODEL: z.string().default("claude-haiku-5-5"),
   GROQ_MODEL: z.string().default("groq/compound"),
   /** Lighter Groq model for extraction/recs (compound can 413 on large prompts). */
   GROQ_COMPLETE_MODEL: z.string().default("llama-3.3-70b-versatile"),
@@ -69,6 +71,7 @@ export type AppConfig = {
   geminiModel: string;
   claudeModel: string;
   voiceModel: string;
+  voiceOpenaiModel: string;
   groqModel: string;
   groqCompleteModel: string;
   promptsPerCategory: number;
@@ -112,6 +115,7 @@ export function getConfig(): AppConfig {
     geminiModel: env.GEMINI_MODEL,
     claudeModel: env.CLAUDE_MODEL,
     voiceModel: env.VOICE_MODEL,
+    voiceOpenaiModel: env.VOICE_OPENAI_MODEL,
     groqModel: env.GROQ_MODEL,
     groqCompleteModel: env.GROQ_COMPLETE_MODEL,
     promptsPerCategory: env.PROMPTS_PER_CATEGORY,

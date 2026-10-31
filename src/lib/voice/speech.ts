@@ -65,6 +65,7 @@ export function createSpeaker(handlers: {
   let voice: SpeechSynthesisVoice | null = null;
   let index = 0;
   let run = 0;
+  let onDone: (() => void) | undefined;
 
   function speakFrom(i: number) {
     const synth = window.speechSynthesis;
@@ -75,6 +76,7 @@ export function createSpeaker(handlers: {
       if (token !== run) return;
       if (index >= sentences.length) {
         handlers.onEnd();
+        onDone?.();
         return;
       }
       handlers.onSentence(index);
@@ -97,10 +99,18 @@ export function createSpeaker(handlers: {
   }
 
   return {
-    play(text: string[], speechLang: string, v: SpeechSynthesisVoice | null, startAt = 0) {
+    /** `done` runs only if this playback reaches the end (not on pause/stop). */
+    play(
+      text: string[],
+      speechLang: string,
+      v: SpeechSynthesisVoice | null,
+      startAt = 0,
+      done?: () => void
+    ) {
       sentences = text;
       lang = speechLang;
       voice = v;
+      onDone = done;
       speakFrom(startAt);
     },
     pause() {
@@ -125,7 +135,10 @@ type RecognitionLike = {
   lang: string;
   interimResults: boolean;
   maxAlternatives: number;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  continuous: boolean;
+  onresult:
+    | ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void)
+    | null;
   onerror: ((e: { error: string }) => void) | null;
   onend: (() => void) | null;
   start(): void;
@@ -146,12 +159,14 @@ export function hasSpeechRecognition() {
   return recognitionCtor() !== null;
 }
 
-export function createRecognition(lang: string): RecognitionLike | null {
+/** `interim` streams partial transcripts for a live caption while the user speaks. */
+export function createRecognition(lang: string, interim = false): RecognitionLike | null {
   const Ctor = recognitionCtor();
   if (!Ctor) return null;
   const r = new Ctor();
   r.lang = lang;
-  r.interimResults = false;
+  r.continuous = false;
+  r.interimResults = interim;
   r.maxAlternatives = 1;
   return r;
 }

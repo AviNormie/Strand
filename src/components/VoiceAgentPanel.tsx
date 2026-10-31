@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
+import { postJson, readStoredLanguage, storeLanguage } from "@/lib/voice/client";
 import {
   VOICE_LANGUAGES,
   getVoiceLanguage,
@@ -27,33 +29,6 @@ type Briefing = {
 type Turn = { role: "user" | "assistant"; content: string; warnings?: string[] };
 
 type Playing = { source: "briefing" } | { source: "answer"; turn: number } | null;
-
-const LANG_KEY = "strand.voiceLanguage";
-
-function readStoredLanguage(): VoiceLanguageCode {
-  try {
-    return getVoiceLanguage(localStorage.getItem(LANG_KEY) ?? "en").code;
-  } catch {
-    return "en";
-  }
-}
-
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const wait = res.headers.get("Retry-After");
-    throw new Error(
-      `${data.error || `Request failed (${res.status})`}${wait ? ` Retry in ~${wait}s.` : ""}`
-    );
-  }
-  return data as T;
-}
 
 // Only mounted after the report loads client-side, so browser APIs are safe to read here.
 export function VoiceAgentPanel({ jobId }: { jobId: string }) {
@@ -104,11 +79,7 @@ export function VoiceAgentPanel({ jobId }: { jobId: string }) {
     setBriefingResumeAt(null);
     setError(null);
     setLanguage(code);
-    try {
-      localStorage.setItem(LANG_KEY, code);
-    } catch {
-      // Preference just won't persist.
-    }
+    storeLanguage(code);
   }
 
   function speakBriefing(b: Briefing, startAt = 0) {
@@ -237,6 +208,12 @@ export function VoiceAgentPanel({ jobId }: { jobId: string }) {
                 : "First report for this brand, so there's no comparison yet."
               : "A short spoken summary of this report. Ask follow-up questions any time."}
           </p>
+          <Link
+            href={`/dashboard/${jobId}/tutor`}
+            className="mt-2 inline-block text-sm font-semibold underline underline-offset-2"
+          >
+            Learn with the voice tutor →
+          </Link>
         </div>
         <label className="text-sm">
           <span className="font-hand text-lg">Language</span>

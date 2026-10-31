@@ -28,9 +28,15 @@ function collectNumbers(value: unknown, out: Set<number>) {
  * Small integers are allowed so phrasing like "top 3" or "two competitors" passes.
  * ponytail: catches invented metrics, not invented claims; a semantic judge would cover those.
  */
-export function findUngroundedNumbers(text: string, facts: ReportFacts): number[] {
+export function findUngroundedNumbers(
+  text: string,
+  facts: ReportFacts,
+  /** Extra trusted text whose numbers are allowed too (e.g. metric definitions). */
+  allowedFrom = ""
+): number[] {
   const allowed = new Set<number>();
   collectNumbers(facts, allowed);
+  numbersIn(allowedFrom).forEach((n) => allowed.add(n));
   for (let i = 0; i <= 10; i++) allowed.add(i);
   return [...new Set(numbersIn(text))].filter((n) => !allowed.has(n));
 }

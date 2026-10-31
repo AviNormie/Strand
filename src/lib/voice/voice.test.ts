@@ -2,11 +2,17 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, test } from "node:test";
 import Anthropic from "@anthropic-ai/sdk";
 import type { SerializedReport } from "@/lib/report-serialize";
+import OpenAI from "openai";
 import {
   answerQuestion,
   assertWithinRateLimit,
+  buildVoiceLlms,
+  claudeVoiceLlm,
   getBriefing,
+  openaiVoiceLlm,
   resetVoiceAgentState,
+  toVoiceAgentError,
+  tutorReply,
   VoiceAgentError,
 } from "@/lib/services/voice-agent.service";
 import { buildReportFacts } from "./facts";
@@ -200,8 +206,25 @@ function fakeClaude(replies: object[]) {
     return reply;
   };
   const client = { beta: { messages: { parse: next, create: next } } } as unknown as Anthropic;
-  return { calls, deps: { client, model: "claude-opus-5-5" } };
+  return { calls, deps: { llms: [claudeVoiceLlm(client, "claude-haiku-5-5")] } };
 }
+
+function fakeOpenAI(contents: string[]) {
+  const calls: Call[] = [];
+  const create = async (params: Call) => {
+    calls.push(params);
+    return { choices: [{ message: { content: contents.shift() ?? "", refusal: null } }] };
+  };
+  const client = { chat: { completions: { create } } } as unknown as OpenAI;
+  return { calls, llm: openaiVoiceLlm(client, "gpt-5-mini") };
+}
+
+const brokenClaude = () => {
+  const fail = async () => {
+    throw new Error("401 invalid x-api-key");
+  };
+  return claudeVoiceLlm({ beta: { messages: { parse: fail, create: fail } } } as unknown as Anthropic, "claude-haiku-5-5");
+};
 
 const briefingReply = (script: string) => ({
   stop_reason: "end_turn",
@@ -221,9 +244,10 @@ describe("voice agent (Claude calls, faked)", () => {
     assert.deepEqual(b.warnings, []);
     assert.equal(b.comparedTo, "2026-10-23");
     assert.match(userText(calls[0]), /Respond in Hindi, in Devanagari script/);
+    assert.match(userText(calls[0]), /exactly as spelled here, in Latin letters, never transliterated: Acme CRM, HubSpot, Zoho\./);
     assert.match(JSON.stringify(calls[0].system), /REPORT FACTS/);
     assert.equal(calls[0].tools, undefined);
-    assert.equal(calls[0].model, "claude-opus-5-5");
+    assert.equal(calls[0].model, "claude-haiku-5-5");
   });
 
   test("language switch reuses facts; repeat language is served from cache", async () => {
@@ -284,6 +308,94 @@ describe("voice agent (Claude calls, faked)", () => {
     assert.match(userText(calls[0]), /Hinglish/);
   });
 
+  test("OpenAI is tried first, Claude only as fallback", () => {
+    const keys = { voiceOpenaiModel: "gpt-5-mini", voiceModel: "claude-haiku-5-5" };
+    assert.deepEqual(
+      buildVoiceLlms({ ...keys, openaiApiKey: "sk-test", anthropicApiKey: "sk-ant-test" }).map((l) => l.name),
+      ["openai:gpt-5-mini", "claude:claude-haiku-5-5"]
+    );
+    assert.deepEqual(
+      buildVoiceLlms({ ...keys, anthropicApiKey: "sk-ant-test" }).map((l) => l.name),
+      ["claude:claude-haiku-5-5"]
+    );
+    assert.deepEqual(buildVoiceLlms(keys), []);
+  });
+
+  test("OpenAI answers when it works; Claude is never called", async () => {
+    const openai = fakeOpenAI([
+      JSON.stringify({ script: "Acme CRM visibility is 42.3.", highlights: [], nextActions: [] }),
+      "HubSpot leads with 45% share of voice.",
+    ]);
+    const claude = fakeClaude([]);
+    const deps = { llms: [openai.llm, ...claude.deps.llms] };
+    const b = await getBriefing("k", facts, "fr", "u1", deps);
+    assert.equal(b.script, "Acme CRM visibility is 42.3.");
+    assert.equal(openai.calls[0].model, "gpt-5-mini");
+    assert.match(openai.calls[0].messages[0].content, /REPORT FACTS/);
+    assert.match(openai.calls[0].messages[1].content, /Respond in French/);
+    const a = await answerQuestion(facts, "en", [], "Who leads?", "u1", deps);
+    assert.equal(a.answer, "HubSpot leads with 45% share of voice.");
+    assert.equal(claude.calls.length, 0);
+  });
+
+  test("falls back to Claude when OpenAI fails (e.g. invalid key or malformed output)", async () => {
+    const openai = fakeOpenAI(["not json"]);
+    const claude = fakeClaude([briefingReply("Acme CRM visibility is 42.3.")]);
+    const b = await getBriefing("k", facts, "en", "u1", { llms: [openai.llm, ...claude.deps.llms] });
+    assert.equal(openai.calls.length, 1);
+    assert.equal(claude.calls.length, 1);
+    assert.equal(b.script, "Acme CRM visibility is 42.3.");
+  });
+
+  test("when every backend fails, the first (OpenAI) error is reported", async () => {
+    const openai = fakeOpenAI(["not json"]);
+    await assert.rejects(
+      getBriefing("k", facts, "en", "u1", { llms: [openai.llm, brokenClaude()] }),
+      (e: Error) => e.message === "The AI reply came back malformed" && toVoiceAgentError(e).status === 502
+    );
+  });
+
+  test("tutor: tutor persona, level, language, history and capped suggestions", async () => {
+    const openai = fakeOpenAI([
+      JSON.stringify({
+        reply: "Share of voice ka matlab hai ki AI answers mein Acme CRM kitni baar aata hai. Aapka 25 percent hai.",
+        suggestions: ["HubSpot aage kyun hai?", "Quiz me", "GEO kya hai?", "extra"],
+      }),
+    ]);
+    const res = await tutorReply(
+      facts,
+      "hinglish",
+      "beginner",
+      [
+        { role: "user", content: "Hi" },
+        { role: "assistant", content: "Hello! What would you like to learn?" },
+      ],
+      "Share of voice kya hota hai?",
+      "u1",
+      { llms: [openai.llm] }
+    );
+    assert.deepEqual(res.warnings, []);
+    assert.equal(res.suggestions.length, 3);
+    const [system, ...turns] = openai.calls[0].messages;
+    assert.match(system.content, /voice tutor/);
+    assert.match(system.content, /35% mention rate/);
+    assert.equal(turns.length, 3);
+    assert.match(turns[2].content, /Hinglish/);
+    assert.match(turns[2].content, /Learner level: beginner/);
+    assert.match(turns[2].content, /Share of voice kya hota hai\?/);
+  });
+
+  test("tutor: metric-definition numbers pass, invented stats trigger a retry", async () => {
+    const openai = fakeOpenAI([
+      JSON.stringify({ reply: "Mention rate carries 35% of the visibility score. 80% of buyers use AI.", suggestions: [] }),
+      JSON.stringify({ reply: "Mention rate carries 35% of the visibility score.", suggestions: [] }),
+    ]);
+    const res = await tutorReply(facts, "en", "expert", [], "How is visibility scored?", "u1", { llms: [openai.llm] });
+    assert.equal(openai.calls.length, 2);
+    assert.match(openai.calls[1].messages.at(-1)!.content, /80/);
+    assert.equal(res.reply, "Mention rate carries 35% of the visibility score.");
+  });
+
   test("per-user rate limit", () => {
     for (let i = 0; i < 30; i++) assertWithinRateLimit("u2", 1000);
     assert.throws(() => assertWithinRateLimit("u2", 1000), (e: VoiceAgentError) => e.status === 429);
@@ -291,10 +403,10 @@ describe("voice agent (Claude calls, faked)", () => {
   });
 });
 
-// Real multilingual quality can only be checked against Claude itself.
-test("live: Hindi briefing is in Devanagari, keeps names, stays grounded", { skip: !process.env.ANTHROPIC_API_KEY }, async () => {
+// Real multilingual quality can only be checked against the live models.
+test("live: Claude fallback writes a Hindi briefing in Devanagari, keeps names, stays grounded", { skip: !process.env.ANTHROPIC_API_KEY }, async () => {
   resetVoiceAgentState();
-  const deps = { client: new Anthropic(), model: process.env.VOICE_MODEL || "claude-opus-5-5" };
+  const deps = { llms: [claudeVoiceLlm(new Anthropic(), process.env.VOICE_MODEL || "claude-haiku-5-5")] };
   const b = await getBriefing("live", facts, "hi", "live", deps);
   assert.match(b.script, /[ऀ-ॿ]/);
   assert.ok(mentionsBrand(b.script, facts));
@@ -309,4 +421,23 @@ test("voice pick skips novelty voices and prefers on-device over network voices"
   assert.equal(pickVoice(voices, "hi-IN")?.name, "Lekha");
   assert.equal(pickVoice([v("Google हिन्दी", "hi-IN", false)], "hi-IN")?.name, "Google हिन्दी");
   assert.equal(pickVoice(voices, "ta-IN"), null);
+});
+
+test("live: OpenAI (primary) writes a grounded Hindi briefing", { skip: !process.env.OPENAI_API_KEY }, async () => {
+  resetVoiceAgentState();
+  const deps = { llms: [openaiVoiceLlm(new OpenAI(), process.env.VOICE_OPENAI_MODEL || "gpt-5-mini")] };
+  const b = await getBriefing("live-openai", facts, "hi", "live", deps);
+  assert.match(b.script, /[\u0900-\u097F]/);
+  assert.ok(mentionsBrand(b.script, facts));
+  assert.deepEqual(b.warnings, []);
+});
+
+test("live: OpenAI tutor explains a concept in Hinglish with the brand's own numbers", { skip: !process.env.OPENAI_API_KEY }, async () => {
+  resetVoiceAgentState();
+  const deps = { llms: [openaiVoiceLlm(new OpenAI(), process.env.VOICE_OPENAI_MODEL || "gpt-5-mini")] };
+  const res = await tutorReply(facts, "hinglish", "beginner", [], "Share of voice kya hota hai, simple mein samjhao", "live", deps);
+  assert.ok(mentionsBrand(res.reply, facts) || /HubSpot|Zoho/.test(res.reply));
+  assert.ok(!/[\u0900-\u097F]/.test(res.reply), "Hinglish should be Roman script");
+  assert.ok(res.suggestions.length >= 1);
+  console.log("tutor sample:", res.reply, res.suggestions, res.warnings);
 });
