@@ -11,6 +11,7 @@ import {
 } from "@/components/InsightMetricCard";
 import { MarkdownReport } from "@/components/MarkdownReport";
 import { ReportRankingHero } from "@/components/ReportRankingHero";
+import { VoiceAgentPanel } from "@/components/VoiceAgentPanel";
 import { VoiceSummaryButton } from "@/components/VoiceSummaryButton";
 import {
   parseRecommendationContent,
@@ -323,7 +324,7 @@ export function AnalysisDashboard({
                 )}
               </p>
             </div>
-            {isDone && voiceSummary && <VoiceSummaryButton text={voiceSummary} />}
+            {isPublic && isDone && voiceSummary && <VoiceSummaryButton text={voiceSummary} />}
           </div>
 
           {(results?.providers?.length || isDone) && (
@@ -409,6 +410,8 @@ export function AnalysisDashboard({
               reportPath={reportPath}
               showCta={isPublic}
             />
+
+            {!isPublic && <VoiceAgentPanel jobId={jobId} />}
 
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {insightCards.map((card) => (

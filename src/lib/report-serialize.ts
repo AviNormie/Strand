@@ -1,6 +1,21 @@
 import type { Prisma } from "@prisma/client";
 import { buildLogoMap, hostnameFromUrl } from "@/lib/brand-logo";
 
+/** Same shape the results route loads; ordered so serialized prompts are stable. */
+export const reportInclude = {
+  metrics: true,
+  recommendation: true,
+  prompts: {
+    orderBy: { createdAt: "asc" },
+    include: {
+      responses: {
+        orderBy: { createdAt: "asc" },
+        include: { extracted: true },
+      },
+    },
+  },
+} satisfies Prisma.AnalysisJobInclude;
+
 type JobWithRelations = Prisma.AnalysisJobGetPayload<{
   include: {
     metrics: true;

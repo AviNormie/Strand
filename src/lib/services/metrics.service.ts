@@ -3,7 +3,7 @@ import { createLogger } from "@/lib/logger";
 
 const log = createLogger("service:metrics");
 
-function brandMatches(name: string, brands: string[]): boolean {
+export function brandMatches(name: string, brands: string[]): boolean {
   const target = name.toLowerCase().trim();
   if (!target) return false;
   return brands.some((b) => {
