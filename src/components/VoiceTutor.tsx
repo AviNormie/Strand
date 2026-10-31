@@ -49,7 +49,8 @@ function starterSuggestions(brand: string, competitors: string[]) {
   return [
     "Start a short lesson on AI visibility",
     "Explain my visibility score like I'm new to this",
-    competitors[0] ? `Why is ${competitors[0]} ahead of ${brand}?` : `Where is ${brand} weakest?`,
+    // Neutral wording: the top competitor isn't necessarily ahead of the brand.
+    competitors[0] ? `How does ${brand} compare with ${competitors[0]}?` : `Where is ${brand} weakest?`,
     "What is GEO and how is it different from SEO?",
     "What changed since my last report?",
     "Quiz me on AI visibility",

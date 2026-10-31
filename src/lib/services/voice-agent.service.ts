@@ -130,7 +130,8 @@ const SPEAKING_RULES = `Speaking style:
 - Write every number with Western digits (0-9) exactly as it appears in the facts, rounded to at most one decimal.
 - Keep brand names, competitor names, product names, AI assistant names and source domains exactly as written in the facts, untranslated.
 - When writing in another language, keep common technical terms (share of voice, visibility score, citation, prompt) in English where a native speaker would.
-- Never assume the listener's gender. In gendered languages use respectful, gender-neutral address (for example "aap" with forms like "aap sochte hain" / "kya aap chahenge" in Hindi and Hinglish), never gendered verb forms aimed at the listener.`;
+- Never assume the listener's gender. In gendered languages use respectful, gender-neutral address (for example "aap" with forms like "aap sochte hain" / "kya aap chahenge" in Hindi and Hinglish), never gendered verb forms aimed at the listener. Keep the "aap" register throughout, including suggestions and instructions ("dekhiye", "kijiye", "banaiye"), never "tum" forms ("dekho", "karo").
+- Never say field names or JSON keys from the facts (for example say "prompts where competitors appear and you don't", not "gapPrompts").`;
 
 // Stable across languages and turns so the facts block stays prompt-cached.
 const ANALYST_SYSTEM = `You are Strand's voice analyst. Strand measures how often AI assistants (ChatGPT, Gemini, Claude, Groq) mention, rank and cite a brand versus its competitors. You speak to the brand's marketing team.
@@ -465,7 +466,7 @@ export async function tutorReply(
   assertWithinRateLimit(userId);
   const llms = tutorLlms((deps ?? defaultDeps()).llms);
   const prior = trimHistory(history, MAX_TUTOR_HISTORY_TURNS);
-  const ask = `${languageLine(language, facts)} Learner level: ${level}.\n\nLearner: ${message}`;
+  const ask = `${languageLine(language, facts)} Learner level: ${level}. Reply in at most 5 short spoken sentences (under 90 words); offer to go deeper rather than covering everything.\n\nLearner: ${message}`;
 
   return withFallback(llms, async (llm) => {
     const { result, warnings } = await withGroundingRetry(
